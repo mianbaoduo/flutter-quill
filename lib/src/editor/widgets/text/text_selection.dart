@@ -910,6 +910,7 @@ class EditorTextSelectionGestureDetector extends StatefulWidget {
   static int getEffectiveConsecutiveTapCount(int rawCount) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
+      case TargetPlatform.ohos:
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
         // From observation, these platform's reset their tap count to 0 when
@@ -1067,6 +1068,7 @@ class _EditorTextSelectionGestureDetectorState
         widget.onDragSelectionEnd != null) {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
+        case TargetPlatform.ohos:
         case TargetPlatform.fuchsia:
         case TargetPlatform.iOS:
           gestures[TapAndHorizontalDragGestureRecognizer] =

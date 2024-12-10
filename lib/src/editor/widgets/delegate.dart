@@ -269,6 +269,7 @@ class EditorTextSelectionGestureDetectorBuilder {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
+      case TargetPlatform.ohos:
         editor?.hideToolbar(false);
       case TargetPlatform.iOS:
         // On mobile platforms the selection is set on tap up.
@@ -491,6 +492,7 @@ class EditorTextSelectionGestureDetectorBuilder {
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.windows:
+      case TargetPlatform.ohos:
         if (renderEditor?.hasFocus == false) {
           renderEditor?.selectPosition(cause: SelectionChangedCause.tap);
         }
@@ -624,6 +626,7 @@ class EditorTextSelectionGestureDetectorBuilder {
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
+      case TargetPlatform.ohos:
       case TargetPlatform.fuchsia:
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
@@ -683,6 +686,7 @@ class EditorTextSelectionGestureDetectorBuilder {
               cause: SelectionChangedCause.drag);
 
         case TargetPlatform.android:
+        case TargetPlatform.ohos:
         case TargetPlatform.fuchsia:
         case TargetPlatform.linux:
         case TargetPlatform.windows:
@@ -717,6 +721,7 @@ class EditorTextSelectionGestureDetectorBuilder {
             case null:
           }
         case TargetPlatform.android:
+        case TargetPlatform.ohos:
         case TargetPlatform.fuchsia:
           switch (details.kind) {
             case PointerDeviceKind.mouse:
@@ -802,6 +807,7 @@ class EditorTextSelectionGestureDetectorBuilder {
           3) {
         switch (defaultTargetPlatform) {
           case TargetPlatform.android:
+          case TargetPlatform.ohos:
           case TargetPlatform.fuchsia:
           case TargetPlatform.iOS:
             switch (updateDetails.kind) {
@@ -877,6 +883,7 @@ class EditorTextSelectionGestureDetectorBuilder {
           }
           return;
         case TargetPlatform.android:
+        case TargetPlatform.ohos:
         case TargetPlatform.fuchsia:
           // With a precise pointer device, such as a mouse, trackpad, or stylus,
           // the drag will select the text spanning the origin of the drag to the end of the drag.
