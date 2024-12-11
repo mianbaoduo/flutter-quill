@@ -338,12 +338,14 @@ class QuillRawEditorState extends EditorState
     /// The focus dropping behavior is only present on desktop platforms
     /// and mobile browsers.
     switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.ohos:
-      case TargetPlatform.iOS:
-      case TargetPlatform.fuchsia:
-        // On mobile platforms, we don't unfocus on touch events unless they're
-        // in the web browser, but we do unfocus for all other kinds of events.
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        widget.configurations.focusNode.unfocus();
+        break;
+      default:
+      // On mobile platforms, we don't unfocus on touch events unless they're
+      // in the web browser, but we do unfocus for all other kinds of events.
         switch (event.kind) {
           case ui.PointerDeviceKind.touch:
             break;
@@ -359,16 +361,6 @@ class QuillRawEditorState extends EditorState
             );
         }
         break;
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-        widget.configurations.focusNode.unfocus();
-        break;
-      default:
-        throw UnsupportedError(
-          'The platform ${defaultTargetPlatform.name} is not supported in the'
-          ' _defaultOnTapOutside()',
-        );
     }
   }
 

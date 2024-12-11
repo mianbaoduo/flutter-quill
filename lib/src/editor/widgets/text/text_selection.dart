@@ -909,19 +909,6 @@ class EditorTextSelectionGestureDetector extends StatefulWidget {
 
   static int getEffectiveConsecutiveTapCount(int rawCount) {
     switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.ohos:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-        // From observation, these platform's reset their tap count to 0 when
-        // the number of consecutive taps exceeds 3. For example on Debian Linux
-        // with GTK, when going past a triple click, on the fourth click the
-        // selection is moved to the precise click position, on the fifth click
-        // the word at the position is selected, and on the sixth click the
-        // paragraph at the position is selected.
-        return rawCount <= 3
-            ? rawCount
-            : (rawCount % 3 == 0 ? 3 : rawCount % 3);
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
         // From observation, these platform's either hold their tap count at 3.
@@ -936,6 +923,16 @@ class EditorTextSelectionGestureDetector extends StatefulWidget {
         // the clicked position will be selected, and on the next click the
         // paragraph at the position is selected.
         return rawCount < 2 ? rawCount : 2 + rawCount % 2;
+      default:
+      // From observation, these platform's reset their tap count to 0 when
+      // the number of consecutive taps exceeds 3. For example on Debian Linux
+      // with GTK, when going past a triple click, on the fourth click the
+      // selection is moved to the precise click position, on the fifth click
+      // the word at the position is selected, and on the sixth click the
+      // paragraph at the position is selected.
+        return rawCount <= 3
+            ? rawCount
+            : (rawCount % 3 == 0 ? 3 : rawCount % 3);
     }
   }
 }
@@ -1067,29 +1064,6 @@ class _EditorTextSelectionGestureDetectorState
         widget.onDragSelectionUpdate != null ||
         widget.onDragSelectionEnd != null) {
       switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-        case TargetPlatform.ohos:
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.iOS:
-          gestures[TapAndHorizontalDragGestureRecognizer] =
-              GestureRecognizerFactoryWithHandlers<
-                  TapAndHorizontalDragGestureRecognizer>(
-            () => TapAndHorizontalDragGestureRecognizer(debugOwner: this),
-            (instance) {
-              instance
-                // Text selection should start from the position of the first pointer
-                // down event.
-                ..dragStartBehavior = DragStartBehavior.down
-                ..onTapTrackStart = _handleTapTrackStart
-                ..onTapTrackReset = _handleTapTrackReset
-                ..onTapDown = _handleTapDown
-                ..onDragStart = _handleDragStart
-                ..onDragUpdate = _handleDragUpdate
-                ..onDragEnd = _handleDragEnd
-                ..onTapUp = _handleTapUp
-                ..onCancel = _handleTapCancel;
-            },
-          );
         case TargetPlatform.linux:
         case TargetPlatform.macOS:
         case TargetPlatform.windows:
@@ -1111,6 +1085,26 @@ class _EditorTextSelectionGestureDetectorState
                 ..onCancel = _handleTapCancel;
             },
           );
+        default:
+          gestures[TapAndHorizontalDragGestureRecognizer] =
+              GestureRecognizerFactoryWithHandlers<
+                  TapAndHorizontalDragGestureRecognizer>(
+                    () => TapAndHorizontalDragGestureRecognizer(debugOwner: this),
+                    (instance) {
+                  instance
+                  // Text selection should start from the position of the first pointer
+                  // down event.
+                    ..dragStartBehavior = DragStartBehavior.down
+                    ..onTapTrackStart = _handleTapTrackStart
+                    ..onTapTrackReset = _handleTapTrackReset
+                    ..onTapDown = _handleTapDown
+                    ..onDragStart = _handleDragStart
+                    ..onDragUpdate = _handleDragUpdate
+                    ..onDragEnd = _handleDragEnd
+                    ..onTapUp = _handleTapUp
+                    ..onCancel = _handleTapCancel;
+                },
+              );
       }
     }
 

@@ -42,18 +42,13 @@ class ImageResizerState extends State<ImageResizer> {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
         return _showCupertinoMenu();
-      case TargetPlatform.android:
-      case TargetPlatform.ohos:
-        return _showMaterialMenu();
       case TargetPlatform.macOS:
       case TargetPlatform.windows:
       case TargetPlatform.linux:
       case TargetPlatform.fuchsia:
         return _showMaterialMenu();
       default:
-        throw UnsupportedError(
-          'Not supposed to be invoked for $defaultTargetPlatform',
-        );
+        return _showMaterialMenu();
     }
   }
 

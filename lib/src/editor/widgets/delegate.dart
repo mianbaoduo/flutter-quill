@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_utils/flutter_platform_utils.dart';
 
 import '../../common/utils/platform.dart';
 import '../../document/attribute.dart';
@@ -266,35 +267,32 @@ class EditorTextSelectionGestureDetectorBuilder {
         kind == PointerDeviceKind.stylus;
     final isShiftPressedValid =
         _isShiftPressed && renderEditor?.selection.baseOffset != null;
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.ohos:
-        editor?.hideToolbar(false);
-      case TargetPlatform.iOS:
-        // On mobile platforms the selection is set on tap up.
-        break;
-      case TargetPlatform.macOS:
-        editor?.hideToolbar();
-        // On macOS, a shift-tapped unfocused field expands from 0, not from the
-        // previous selection.
-        if (isShiftPressedValid) {
-          final fromSelection = renderEditor?.hasFocus == true
-              ? null
-              : const TextSelection.collapsed(offset: 0);
-          _expandSelection(
-              details.globalPosition, SelectionChangedCause.tap, fromSelection);
-          return;
-        }
-        renderEditor?.selectPosition(cause: SelectionChangedCause.tap);
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        editor?.hideToolbar();
-        if (isShiftPressedValid) {
-          _extendSelection(details.globalPosition, SelectionChangedCause.tap);
-          return;
-        }
-        renderEditor?.selectPosition(cause: SelectionChangedCause.tap);
+    if (defaultTargetPlatform case TargetPlatform.iOS) {
+      // break;
+    } else if (defaultTargetPlatform case TargetPlatform.macOS) {
+      editor?.hideToolbar();
+      // On macOS, a shift-tapped unfocused field expands from 0, not from the
+      // previous selection.
+      if (isShiftPressedValid) {
+        final fromSelection = renderEditor?.hasFocus == true
+            ? null
+            : const TextSelection.collapsed(offset: 0);
+        _expandSelection(
+            details.globalPosition, SelectionChangedCause.tap, fromSelection);
+        return;
+      }
+      renderEditor?.selectPosition(cause: SelectionChangedCause.tap);
+    } else if (defaultTargetPlatform
+        case TargetPlatform.linux || TargetPlatform.windows) {
+      editor?.hideToolbar();
+      if (isShiftPressedValid) {
+        _extendSelection(details.globalPosition, SelectionChangedCause.tap);
+        return;
+      }
+      renderEditor?.selectPosition(cause: SelectionChangedCause.tap);
+    } else {
+      // if (defaultTargetPlatform case TargetPlatform.android || TargetPlatform.fuchsia || PlatformUtils.isOhos)
+      editor?.hideToolbar(false);
     }
   }
 
@@ -365,7 +363,9 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///     whether this callback is called only on the first tap in a series
   ///     of taps.
   @protected
-  void onUserTap() {/* Subclass should override this method if needed. */}
+  void onUserTap() {
+    /* Subclass should override this method if needed. */
+  }
 
   /// Handler for [EditorTextSelectionGestureDetector.onSingleTapUp].
   ///
@@ -488,11 +488,7 @@ class EditorTextSelectionGestureDetectorBuilder {
           editor?.hideToolbar();
           editor?.showToolbar();
         }
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-      case TargetPlatform.ohos:
+      default:
         if (renderEditor?.hasFocus == false) {
           renderEditor?.selectPosition(cause: SelectionChangedCause.tap);
         }
@@ -625,16 +621,11 @@ class EditorTextSelectionGestureDetectorBuilder {
     }
 
     switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.ohos:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-        _selectParagraphsInRange(
-            from: details.globalPosition, cause: SelectionChangedCause.tap);
       case TargetPlatform.linux:
         _selectLinesInRange(
+            from: details.globalPosition, cause: SelectionChangedCause.tap);
+      default:
+        _selectParagraphsInRange(
             from: details.globalPosition, cause: SelectionChangedCause.tap);
     }
 
@@ -685,11 +676,7 @@ class EditorTextSelectionGestureDetectorBuilder {
           renderEditor?.extendSelection(details.globalPosition,
               cause: SelectionChangedCause.drag);
 
-        case TargetPlatform.android:
-        case TargetPlatform.ohos:
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.linux:
-        case TargetPlatform.windows:
+        default:
           renderEditor?.extendSelection(details.globalPosition,
               cause: SelectionChangedCause.drag);
       }
@@ -720,9 +707,14 @@ class EditorTextSelectionGestureDetectorBuilder {
               }
             case null:
           }
-        case TargetPlatform.android:
-        case TargetPlatform.ohos:
-        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.macOS:
+        case TargetPlatform.windows:
+          _dragStartSelection = renderEditor?.selectPositionAt(
+            from: details.globalPosition,
+            cause: SelectionChangedCause.drag,
+          );
+        default:
           switch (details.kind) {
             case PointerDeviceKind.mouse:
             case PointerDeviceKind.trackpad:
@@ -745,13 +737,6 @@ class EditorTextSelectionGestureDetectorBuilder {
               }
             case null:
           }
-        case TargetPlatform.linux:
-        case TargetPlatform.macOS:
-        case TargetPlatform.windows:
-          _dragStartSelection = renderEditor?.selectPositionAt(
-            from: details.globalPosition,
-            cause: SelectionChangedCause.drag,
-          );
       }
     }
   }
@@ -806,10 +791,20 @@ class EditorTextSelectionGestureDetectorBuilder {
               updateDetails.consecutiveTapCount) ==
           3) {
         switch (defaultTargetPlatform) {
-          case TargetPlatform.android:
-          case TargetPlatform.ohos:
-          case TargetPlatform.fuchsia:
-          case TargetPlatform.iOS:
+          case TargetPlatform.linux:
+            return _selectLinesInRange(
+              from: dragStartGlobalPosition - editableOffset - scrollableOffset,
+              to: updateDetails.globalPosition,
+              cause: SelectionChangedCause.drag,
+            );
+          case TargetPlatform.windows:
+          case TargetPlatform.macOS:
+            return _selectParagraphsInRange(
+              from: dragStartGlobalPosition - editableOffset - scrollableOffset,
+              to: updateDetails.globalPosition,
+              cause: SelectionChangedCause.drag,
+            );
+          default:
             switch (updateDetails.kind) {
               case PointerDeviceKind.mouse:
               case PointerDeviceKind.trackpad:
@@ -825,24 +820,11 @@ class EditorTextSelectionGestureDetectorBuilder {
               case PointerDeviceKind.touch:
               case PointerDeviceKind.unknown:
               case null:
-                // Triple tap to drag is not present on these platforms when using
-                // non-precise pointer devices at the moment.
+              // Triple tap to drag is not present on these platforms when using
+              // non-precise pointer devices at the moment.
                 break;
             }
             return;
-          case TargetPlatform.linux:
-            return _selectLinesInRange(
-              from: dragStartGlobalPosition - editableOffset - scrollableOffset,
-              to: updateDetails.globalPosition,
-              cause: SelectionChangedCause.drag,
-            );
-          case TargetPlatform.windows:
-          case TargetPlatform.macOS:
-            return _selectParagraphsInRange(
-              from: dragStartGlobalPosition - editableOffset - scrollableOffset,
-              to: updateDetails.globalPosition,
-              cause: SelectionChangedCause.drag,
-            );
         }
       }
 
@@ -882,12 +864,18 @@ class EditorTextSelectionGestureDetectorBuilder {
               break;
           }
           return;
-        case TargetPlatform.android:
-        case TargetPlatform.ohos:
-        case TargetPlatform.fuchsia:
-          // With a precise pointer device, such as a mouse, trackpad, or stylus,
-          // the drag will select the text spanning the origin of the drag to the end of the drag.
-          // With a touch device, the cursor should move with the drag.
+        case TargetPlatform.macOS:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          renderEditor?.selectPositionAt(
+            from: dragStartGlobalPosition - editableOffset - scrollableOffset,
+            to: updateDetails.globalPosition,
+            cause: SelectionChangedCause.drag,
+          );
+        default:
+        // With a precise pointer device, such as a mouse, trackpad, or stylus,
+        // the drag will select the text spanning the origin of the drag to the end of the drag.
+        // With a touch device, the cursor should move with the drag.
           switch (updateDetails.kind) {
             case PointerDeviceKind.mouse:
             case PointerDeviceKind.trackpad:
@@ -895,7 +883,7 @@ class EditorTextSelectionGestureDetectorBuilder {
             case PointerDeviceKind.invertedStylus:
               renderEditor?.selectPositionAt(
                 from:
-                    dragStartGlobalPosition - editableOffset - scrollableOffset,
+                dragStartGlobalPosition - editableOffset - scrollableOffset,
                 to: updateDetails.globalPosition,
                 cause: SelectionChangedCause.drag,
               );
@@ -913,14 +901,6 @@ class EditorTextSelectionGestureDetectorBuilder {
               break;
           }
           return;
-        case TargetPlatform.macOS:
-        case TargetPlatform.linux:
-        case TargetPlatform.windows:
-          renderEditor?.selectPositionAt(
-            from: dragStartGlobalPosition - editableOffset - scrollableOffset,
-            to: updateDetails.globalPosition,
-            cause: SelectionChangedCause.drag,
-          );
       }
     }
 
